@@ -1,40 +1,69 @@
 # backend/app/routers/cazzate.py
-from fastapi import APIRouter
-from app.schemas.cazzata import CazzataOut
-from datetime import date
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.core.auth import verify_token
+from app.services.cazzata_service import CazzataService
+from app.schemas.cazzata import CazzataCreate, CazzataConfirm, CazzataOut
 
 router = APIRouter(prefix="/cazzate", tags=["cazzate"])
 
-MOCK_CAZZATE = [
-    {
-        "id": 1,
-        "player": "LUCA F",
-        "date": date(2026, 2, 15),
-        "month": "FEBBRAIO",
-        "description": "Dimentica borraccia, scarpe, mutande ecc...",
-        "score": 1,
-        "status": "confirmed"
-    },
-    {
-        "id": 2,
-        "player": "DAVIDE",
-        "date": date(2026, 2, 28),
-        "month": "FEBBRAIO",
-        "description": "Multa per semaforo rosso",
-        "score": 6,
-        "status": "confirmed"
-    },
-    {
-        "id": 3,
-        "player": "LUCA R",
-        "date": date(2026, 4, 22),
-        "month": "APRILE",
-        "description": "Fa lezioni non pagate online",
-        "score": None,
-        "status": "pending"
-    },
-]
+@router.post("/", response_model=CazzataOut, status_code=status.HTTP_201_CREATED)
+def create_cazzata(
+    data: CazzataCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    service = CazzataService(db)
+    return service.create_cazzata(data)
 
 @router.get("/", response_model=list[CazzataOut])
-def get_cazzate():
-    return MOCK_CAZZATE
+def get_cazzate(
+    season_id: int | None = None,
+    cazzaro_id: int | None = None,
+    month: int | None = None,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    service = CazzataService(db)
+    return service.get_all(season_id=season_id,
+                           cazzaro_id=cazzaro_id,
+                           month=month)
+
+@router.get("/{cazzata_id}", response_model=CazzataOut)
+def get_cazzata(
+    cazzata_id: int,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    service = CazzataService(db)
+    cazzata = service.get_cazzata(cazzata_id)
+    if not cazzata:
+        raise HTTPException(status_code=404, detail="Cazzata non trovata")
+    return cazzata
+
+@router.patch("/{cazzata_id}/confirm", response_model=CazzataOut)
+def confirm_cazzata(
+    cazzata_id: int,
+    data: CazzataConfirm,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    service = CazzataService(db)
+    try:
+        cazzata = service.confirm_cazzata(cazzata_id, data)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if not cazzata:
+        raise HTTPException(status_code=404, detail="Cazzata non trovata")
+    return cazzata
+
+@router.delete("/{cazzata_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_cazzata(
+    cazzata_id: int,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    service = CazzataService(db)
+    if not service.delete_cazzata(cazzata_id):
+        raise HTTPException(status_code=404, detail="Cazzata non trovata")

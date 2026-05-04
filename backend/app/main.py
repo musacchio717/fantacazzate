@@ -2,7 +2,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routers import auth
+from app.routers import auth, seasons, cazzate, auctions, stats
+from backend.app.routers import user
 
 app = FastAPI(
     title=settings.app_name,
@@ -19,6 +20,11 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(user.router)
+app.include_router(seasons.router)
+app.include_router(cazzate.router)
+app.include_router(auctions.router)
+app.include_router(stats.router)
 
 @app.get("/health")
 def health_check():
