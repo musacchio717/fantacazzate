@@ -19,7 +19,7 @@ class Cazzata(Base, TimestampMixin):
     cazzaro_id  = Column(Integer, ForeignKey("cazzari.id"), nullable=False)
     season_id   = Column(Integer, ForeignKey("seasons.id"), nullable=False)
     date        = Column(Date, nullable=False)
-    month       = Column(String, nullable=False)   # es. "MARZO"
+    month = Column(Integer, nullable=False)  # 1=Gennaio, 12=Dicembre
     description = Column(Text, nullable=False)
     score       = Column(Integer, nullable=True)   # null finché PENDING
     status      = Column(

@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     app_name: str = "Fantacazzate API"
     debug: bool = True
+    database_url: str = "sqlite:///./fantacazzate.db"  # SQLite in locale
     allowed_origins: list[str] = [
         "http://localhost:3000",
         "http://localhost:5173",
