@@ -27,6 +27,7 @@ class Cazzata(Base, TimestampMixin):
                     default=CazzataStatus.PENDING,
                     nullable=False
                   )
+    submitted_by = Column(Integer, ForeignKey("players.id"), nullable=True)
 
     # Relazioni
     cazzaro = relationship("Cazzaro", back_populates="cazzate")

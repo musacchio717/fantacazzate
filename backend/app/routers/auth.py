@@ -13,5 +13,5 @@ def login(data: LoginRequest):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Password errata"
         )
-    token = create_access_token({"sub": data.username})
+    token = create_access_token({"sub": "fantacazzate"})
     return TokenOut(access_token=token)

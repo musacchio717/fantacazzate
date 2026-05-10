@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     secret_key: str = "changeme-in-production"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 10080  # 7 giorni
-    app_password: str = "fantacazzate2026"    # password condivisa
+    app_password: str = "pesciolinoduro7"    # password condivisa
 
     class Config:
         env_file = ".env"

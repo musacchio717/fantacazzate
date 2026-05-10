@@ -2,7 +2,6 @@
 from pydantic import BaseModel
 
 class LoginRequest(BaseModel):
-    username: str   # nome di chi accede, solo per tracciare
     password: str
 
 class TokenOut(BaseModel):

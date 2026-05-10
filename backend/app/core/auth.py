@@ -2,10 +2,10 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.core.config import settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+bearer_scheme = HTTPBearer()
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
@@ -15,10 +15,15 @@ def create_access_token(data: dict) -> str:
     return jwt.encode(to_encode, settings.secret_key,
                       algorithm=settings.algorithm)
 
-def verify_token(token: str = Depends(oauth2_scheme)) -> dict:
+def verify_token(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)
+) -> dict:
     try:
-        payload = jwt.decode(token, settings.secret_key,
-                             algorithms=[settings.algorithm])
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.secret_key,
+            algorithms=[settings.algorithm]
+        )
         return payload
     except JWTError:
         raise HTTPException(

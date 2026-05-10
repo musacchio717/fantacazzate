@@ -1,8 +1,8 @@
-"""create initial tables
+"""initial schema complete
 
-Revision ID: b653dc3d9dcc
+Revision ID: 102c6d5855e9
 Revises: 
-Create Date: 2026-05-04 12:07:12.257245
+Create Date: 2026-05-10 09:37:43.845703
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'b653dc3d9dcc'
+revision: str = '102c6d5855e9'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -97,10 +97,12 @@ def upgrade() -> None:
     sa.Column('description', sa.Text(), nullable=False),
     sa.Column('score', sa.Integer(), nullable=True),
     sa.Column('status', sa.Enum('PENDING', 'CONFIRMED', name='cazzatastatus'), nullable=False),
+    sa.Column('submitted_by', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['cazzaro_id'], ['cazzari.id'], ),
     sa.ForeignKeyConstraint(['season_id'], ['seasons.id'], ),
+    sa.ForeignKeyConstraint(['submitted_by'], ['players.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_cazzate_id'), 'cazzate', ['id'], unique=False)

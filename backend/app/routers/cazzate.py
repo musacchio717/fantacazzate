@@ -5,6 +5,8 @@ from app.core.database import get_db
 from app.core.auth import verify_token
 from app.services.cazzata_service import CazzataService
 from app.schemas.cazzata import CazzataCreate, CazzataConfirm, CazzataOut
+from app.models.player import Cazzaro, Player
+from app.schemas.player import CazzaroOut, PlayerOut
 
 router = APIRouter(prefix="/cazzate", tags=["cazzate"])
 
@@ -67,3 +69,21 @@ def delete_cazzata(
     service = CazzataService(db)
     if not service.delete_cazzata(cazzata_id):
         raise HTTPException(status_code=404, detail="Cazzata non trovata")
+    
+@router.get("/cazzari", response_model=list[CazzaroOut])
+def get_cazzari(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    """Lista dei cazzari disponibili — per il dropdown nel form."""
+    cazzari = db.query(Cazzaro).filter(Cazzaro.is_active == True).all()
+    return cazzari
+
+@router.get("/players", response_model=list[PlayerOut])
+def get_players(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    """Lista dei players disponibili — per il dropdown nel form."""
+    players = db.query(Player).filter(Player.is_active == True).all()
+    return players

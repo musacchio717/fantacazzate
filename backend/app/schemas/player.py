@@ -1,6 +1,6 @@
 # backend/app/schemas/player.py
 from pydantic import BaseModel
-from app.schemas.user import UserOut
+from app.schemas.users import UserOut
 
 class PlayerOut(BaseModel):
     id: int
