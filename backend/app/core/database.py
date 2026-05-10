@@ -4,15 +4,19 @@ from sqlalchemy.orm import sessionmaker, Session
 from app.core.config import settings
 from app.models.base import Base
 
+# check_same_thread serve solo per SQLite
+connect_args = {}
+if settings.database_url.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
 engine = create_engine(
     settings.database_url,
-    connect_args={"check_same_thread": False}  # necessario per SQLite
+    connect_args=connect_args
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
-    """Dependency FastAPI — inietta la sessione DB in ogni endpoint."""
     db: Session = SessionLocal()
     try:
         yield db
