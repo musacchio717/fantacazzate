@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.auth import verify_token
 from app.services.cazzata_service import CazzataService
-from app.schemas.cazzata import CazzataCreate, CazzataConfirm, CazzataOut
+from app.schemas.cazzata import CazzataCreate, CazzataOut
 from app.models.player import Cazzaro, Player
 from app.schemas.player import CazzaroOut, PlayerOut
 
@@ -44,46 +44,58 @@ def get_cazzata(
         raise HTTPException(status_code=404, detail="Cazzata non trovata")
     return cazzata
 
-@router.patch("/{cazzata_id}/confirm", response_model=CazzataOut)
-def confirm_cazzata(
+@router.patch("/{cazzata_id}", response_model=CazzataOut)
+def update_cazzata(
     cazzata_id: int,
-    data: CazzataConfirm,
+    description: str | None = None,
+    score: int | None = None,
     db: Session = Depends(get_db),
     token: dict = Depends(verify_token)
 ):
+    """Modifica descrizione o punteggio di una cazzata esistente."""
     service = CazzataService(db)
-    try:
-        cazzata = service.confirm_cazzata(cazzata_id, data)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    cazzata = service.update_cazzata(cazzata_id, description, score)
     if not cazzata:
         raise HTTPException(status_code=404, detail="Cazzata non trovata")
     return cazzata
 
-@router.delete("/{cazzata_id}", status_code=status.HTTP_204_NO_CONTENT)
+# Sostituisci l'endpoint delete in routers/cazzate.py
+@router.delete("/{cazzata_id}")
 def delete_cazzata(
     cazzata_id: int,
     db: Session = Depends(get_db),
     token: dict = Depends(verify_token)
 ):
     service = CazzataService(db)
-    if not service.delete_cazzata(cazzata_id):
+    cazzata = service.get_cazzata(cazzata_id)
+    if not cazzata:
         raise HTTPException(status_code=404, detail="Cazzata non trovata")
-    
-@router.get("/cazzari", response_model=list[CazzaroOut])
+
+    # Salva i dettagli prima di eliminare
+    dettagli = {
+        "message": "Cazzata eliminata con successo",
+        "id": cazzata.id,
+        "cazzaro_id": cazzata.cazzaro_id,
+        "description": cazzata.description,
+        "score": cazzata.score,
+        "month": cazzata.month
+    }
+
+    service.delete_cazzata(cazzata_id)
+    return dettagli
+
+@router.get("/meta/cazzari", response_model=list[CazzaroOut])
 def get_cazzari(
     db: Session = Depends(get_db),
     token: dict = Depends(verify_token)
 ):
-    """Lista dei cazzari disponibili — per il dropdown nel form."""
-    cazzari = db.query(Cazzaro).filter(Cazzaro.is_active == True).all()
-    return cazzari
+    """Lista cazzari per il dropdown nel form."""
+    return db.query(Cazzaro).filter(Cazzaro.is_active == True).all()
 
-@router.get("/players", response_model=list[PlayerOut])
+@router.get("/meta/players", response_model=list[PlayerOut])
 def get_players(
     db: Session = Depends(get_db),
     token: dict = Depends(verify_token)
 ):
-    """Lista dei players disponibili — per il dropdown nel form."""
-    players = db.query(Player).filter(Player.is_active == True).all()
-    return players
+    """Lista players per il dropdown nel form."""
+    return db.query(Player).filter(Player.is_active == True).all()

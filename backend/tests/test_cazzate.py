@@ -7,68 +7,75 @@ def test_crea_cazzata(client, auth_headers, seed_data):
         "season_id": 1,
         "date": "2026-03-15",
         "month": 3,
-        "description": "Ha dimenticato il portafoglio"
+        "description": "Ha dimenticato il portafoglio",
+        "score": 5
     })
     assert response.status_code == 201
     data = response.json()
-    assert data["status"] == "pending"
-    assert data["score"] is None
-
-def test_conferma_cazzata(client, auth_headers, seed_data):
-    # Prima crea
-    create = client.post("/cazzate/", headers=auth_headers, json={
-        "cazzaro_id": 1,
-        "submitted_by": 2,
-        "season_id": 1,
-        "date": "2026-03-15",
-        "month": 3,
-        "description": "Test cazzata"
-    })
-    cazzata_id = create.json()["id"]
-
-    # Poi conferma
-    confirm = client.patch(
-        f"/cazzate/{cazzata_id}/confirm",
-        headers=auth_headers,
-        json={"score": 7}
-    )
-    assert confirm.status_code == 200
-    assert confirm.json()["score"] == 7
-    assert confirm.json()["status"] == "confirmed"
+    assert data["status"] == "confirmed"
+    assert data["score"] == 5
 
 def test_score_fuori_range(client, auth_headers, seed_data):
+    response = client.post("/cazzate/", headers=auth_headers, json={
+        "cazzaro_id": 1,
+        "submitted_by": 2,
+        "season_id": 1,
+        "date": "2026-03-15",
+        "month": 3,
+        "description": "Test",
+        "score": 11    # fuori range — deve fallire
+    })
+    assert response.status_code == 422
+
+def test_score_minimo(client, auth_headers, seed_data):
+    response = client.post("/cazzate/", headers=auth_headers, json={
+        "cazzaro_id": 1,
+        "submitted_by": 2,
+        "season_id": 1,
+        "date": "2026-03-15",
+        "month": 3,
+        "description": "Test",
+        "score": 0    # sotto il minimo — deve fallire
+    })
+    assert response.status_code == 422
+
+def test_modifica_cazzata(client, auth_headers, seed_data):
+    # Crea
     create = client.post("/cazzate/", headers=auth_headers, json={
         "cazzaro_id": 1,
         "submitted_by": 2,
         "season_id": 1,
         "date": "2026-03-15",
         "month": 3,
-        "description": "Test"
+        "description": "Descrizione originale",
+        "score": 5
     })
     cazzata_id = create.json()["id"]
 
-    # Score > 10 deve fallire
-    confirm = client.patch(
-        f"/cazzate/{cazzata_id}/confirm",
+    # Modifica il punteggio
+    update = client.patch(
+        f"/cazzate/{cazzata_id}",
         headers=auth_headers,
-        json={"score": 11}
+        params={"score": 8}
     )
-    assert confirm.status_code == 422
+    assert update.status_code == 200
+    assert update.json()["score"] == 8
 
-def test_doppia_conferma(client, auth_headers, seed_data):
+def test_elimina_cazzata(client, auth_headers, seed_data):
     create = client.post("/cazzate/", headers=auth_headers, json={
         "cazzaro_id": 1,
         "submitted_by": 2,
         "season_id": 1,
         "date": "2026-03-15",
         "month": 3,
-        "description": "Test"
+        "description": "Da eliminare",
+        "score": 3
     })
     cazzata_id = create.json()["id"]
-    client.patch(f"/cazzate/{cazzata_id}/confirm",
-                 headers=auth_headers, json={"score": 5})
 
-    # Seconda conferma deve fallire
-    second = client.patch(f"/cazzate/{cazzata_id}/confirm",
-                          headers=auth_headers, json={"score": 8})
-    assert second.status_code == 400
+    delete = client.delete(f"/cazzate/{cazzata_id}", headers=auth_headers)
+    assert delete.status_code == 204
+
+    # Verifica che non esista più
+    get = client.get(f"/cazzate/{cazzata_id}", headers=auth_headers)
+    assert get.status_code == 404
