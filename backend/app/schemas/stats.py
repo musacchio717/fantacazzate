@@ -2,9 +2,10 @@
 from pydantic import BaseModel
 
 class StandingOut(BaseModel):
+    position: int
     nickname: str
     points: int
-    position: int
+    monthly_points: dict[int, int] = {}  # {3: 12, 4: 8} = marzo 12pt, aprile 8pt
 
 class PlayerStatsOut(BaseModel):
     nickname: str
@@ -19,4 +20,4 @@ class BudgetOut(BaseModel):
     initial_budget: int
     credits_spent: int
     credits_remaining: int
-    rendimento: float | None  # crediti spesi / punti ottenuti
+    rendimento: float | None

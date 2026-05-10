@@ -4,10 +4,11 @@ from datetime import date
 from app.models.cazzata import CazzataStatus
 
 class CazzataCreate(BaseModel):
-    cazzaro_id: int
+    cazzaro_id: int        # chi ha fatto la cazzata
+    submitted_by: int      # player_id di chi la sta inserendo
     season_id: int
     date: date
-    month: int                    # 1-12
+    month: int
     description: str
 
 class CazzataConfirm(BaseModel):
