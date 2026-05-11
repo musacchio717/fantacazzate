@@ -8,14 +8,12 @@ import hashlib
 def seed():
     db = SessionLocal()
     try:
-        # Controlla se i dati esistono già
         if db.query(User).count() > 0:
             print("DB già popolato, skip.")
             return
 
         print("Popolando il database...")
 
-        # Crea i 4 utenti
         amici = [
             {"nickname": "LUCA F", "email": "lucaf@fantacazzate.it"},
             {"nickname": "LUCA R", "email": "lucar@fantacazzate.it"},
@@ -23,7 +21,6 @@ def seed():
             {"nickname": "CICCIO", "email": "ciccio@fantacazzate.it"},
         ]
 
-        users = []
         for amico in amici:
             user = User(
                 email=amico["email"],
@@ -33,8 +30,6 @@ def seed():
             )
             db.add(user)
             db.flush()
-
-            # Crea Player e Cazzaro per ognuno
             player  = Player(user_id=user.id, is_active=True)
             cazzaro = Cazzaro(
                 user_id=user.id,
@@ -43,25 +38,19 @@ def seed():
             )
             db.add(player)
             db.add(cazzaro)
-            users.append(user)
             print(f"  ✓ {amico['nickname']} creato")
 
-        # Crea la stagione 2026
-        season = Season(
-            name="2026",
-            initial_budget=500,
-            is_active=True
-        )
+        season = Season(name="2026", initial_budget=500, is_active=True)
         db.add(season)
         print("  ✓ Stagione 2026 creata")
 
         db.commit()
-        print("\nSeed completato!")
+        print("Seed completato!")
 
     except Exception as e:
         db.rollback()
-        print(f"Errore: {e}")
-        raise
+        print(f"Errore seed: {e}")
+        # Non sollevare l'eccezione — il server deve partire comunque
     finally:
         db.close()
 

@@ -69,13 +69,11 @@ def import_cazzate():
     try:
         # Controlla se ci sono già cazzate
         from app.models.cazzata import Cazzata
+        # Sostituisci il blocco con input() con questo
         existing = db.query(Cazzata).count()
         if existing > 0:
-            print(f"Attenzione: ci sono già {existing} cazzate nel DB.")
-            risposta = input("Vuoi continuare e aggiungerne altre? (s/n): ")
-            if risposta.lower() != 's':
-                print("Import annullato.")
-                return
+            print(f"Ci sono già {existing} cazzate, skip.")
+            return
 
         importate = 0
         for data_str, mese, nickname, descrizione, score in CAZZATE:
