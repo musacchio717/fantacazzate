@@ -3,15 +3,32 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.models.auction import Auction
 from app.models.player import Player, Cazzaro
+from app.models.user import User
 from app.schemas.auction import AuctionCreate, AuctionUpdate
 
 class AuctionService:
     def __init__(self, db: Session):
         self.db = db
 
+    def _enrich(self, auction: Auction) -> Auction:
+        """Aggiunge nickname al player e al cazzaro."""
+        player = self.db.query(Player).filter(
+            Player.id == auction.player_id).first()
+        if player and player.user:
+            auction.player_nickname = player.user.nickname
+
+        cazzaro = self.db.query(Cazzaro).filter(
+            Cazzaro.id == auction.cazzaro_id).first()
+        if cazzaro:
+            auction.cazzaro_nickname = cazzaro.nickname
+
+        return auction
+
     def create_auction(self, data: AuctionCreate) -> Auction:
-        player  = self.db.query(Player).filter(Player.id == data.player_id).first()
-        cazzaro = self.db.query(Cazzaro).filter(Cazzaro.id == data.cazzaro_id).first()
+        player  = self.db.query(Player).filter(
+                    Player.id == data.player_id).first()
+        cazzaro = self.db.query(Cazzaro).filter(
+                    Cazzaro.id == data.cazzaro_id).first()
 
         if not player or not cazzaro:
             raise ValueError("Player o Cazzaro non trovato")
@@ -24,13 +41,17 @@ class AuctionService:
             self.db.add(auction)
             self.db.commit()
             self.db.refresh(auction)
-            return auction
+            return self._enrich(auction)
         except IntegrityError:
             self.db.rollback()
             raise ValueError("Asta duplicata per questo mese")
 
     def get_auction(self, auction_id: int) -> Auction | None:
-        return self.db.query(Auction).filter(Auction.id == auction_id).first()
+        auction = self.db.query(Auction).filter(
+                    Auction.id == auction_id).first()
+        if auction:
+            return self._enrich(auction)
+        return None
 
     def get_auctions(self, season_id: int,
                      month: int | None = None) -> list[Auction]:
@@ -38,7 +59,8 @@ class AuctionService:
                     Auction.season_id == season_id)
         if month:
             query = query.filter(Auction.month == month)
-        return query.all()
+        auctions = query.all()
+        return [self._enrich(a) for a in auctions]
 
     def update_auction(self, auction_id: int,
                        data: AuctionUpdate) -> Auction | None:
@@ -46,7 +68,6 @@ class AuctionService:
         if not auction:
             return None
 
-        # Se cambia cazzaro, verifica che non compri se stesso
         if data.cazzaro_id:
             player  = self.db.query(Player).filter(
                         Player.id == auction.player_id).first()
@@ -62,13 +83,14 @@ class AuctionService:
         try:
             self.db.commit()
             self.db.refresh(auction)
-            return auction
+            return self._enrich(auction)
         except IntegrityError:
             self.db.rollback()
             raise ValueError("Modifica non valida — vincolo violato")
 
     def delete_auction(self, auction_id: int) -> bool:
-        auction = self.get_auction(auction_id)
+        auction = self.db.query(Auction).filter(
+                    Auction.id == auction_id).first()
         if not auction:
             return False
         self.db.delete(auction)

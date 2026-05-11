@@ -17,7 +17,7 @@ class Auction(Base, TimestampMixin):
     cazzaro_id  = Column(Integer, ForeignKey("cazzari.id"), nullable=False)
     month = Column(Integer, nullable=False)  # 1=Gennaio, 12=Dicembre
     cost        = Column(Integer, nullable=False)  # crediti spesi
-
+    
     # Vincoli di unicità a livello di database
     __table_args__ = (
         UniqueConstraint("season_id", "player_id", "month",

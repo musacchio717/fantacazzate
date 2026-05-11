@@ -10,7 +10,7 @@ class CazzataCreate(BaseModel):
     date: date
     month: int
     description: str
-    score: int                    # obbligatorio subito
+    score: int
 
     @field_validator("score")
     @classmethod
@@ -19,17 +19,17 @@ class CazzataCreate(BaseModel):
             raise ValueError("Il punteggio deve essere tra 1 e 10")
         return v
 
-# backend/app/schemas/cazzata.py
-
 class CazzataOut(BaseModel):
     id: int
     cazzaro_id: int
+    cazzaro_nickname: str | None = None      # ← aggiunto
     submitted_by: int | None
+    submitted_by_nickname: str | None = None # ← aggiunto
     season_id: int
     date: date
     month: int
     description: str
-    score: int | None    # nullable — per compatibilità con dati vecchi
+    score: int | None
     status: CazzataStatus
 
     model_config = {"from_attributes": True}

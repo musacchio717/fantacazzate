@@ -9,14 +9,16 @@ class AuctionCreate(BaseModel):
     cost: int
 
 class AuctionUpdate(BaseModel):
-    cazzaro_id: int | None = None  # può cambiare il cazzaro acquistato
-    cost: int | None = None        # può cambiare il costo
+    cazzaro_id: int | None = None
+    cost: int | None = None
 
 class AuctionOut(BaseModel):
     id: int
     season_id: int
     player_id: int
+    player_nickname: str | None = None    # ← aggiunto
     cazzaro_id: int
+    cazzaro_nickname: str | None = None   # ← aggiunto
     month: int
     cost: int
 
