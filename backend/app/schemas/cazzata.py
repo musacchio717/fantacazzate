@@ -26,7 +26,7 @@ class CazzataOut(BaseModel):
     submitted_by: int | None
     submitted_by_nickname: str | None = None # ← aggiunto
     season_id: int
-    date: date
+    date: datetime
     month: int
     description: str
     score: int | None
