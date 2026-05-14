@@ -84,23 +84,42 @@ class StatsService:
 
             confirmed = [c for c in cazzate
                          if c.status == CazzataStatus.CONFIRMED]
-            pending   = [c for c in cazzate
-                         if c.status == CazzataStatus.PENDING]
             scores    = [c.score for c in confirmed if c.score]
             avg       = round(sum(scores)/len(scores), 2) if scores else None
+
+            # Rendimento: crediti spesi per ogni punto generato
+            # Per ogni asta in cui è stato comprato, calcola cost/points per quel mese
+            auctions = self.db.query(Auction).filter(
+                Auction.cazzaro_id == cazzaro.id,
+                Auction.season_id == season_id
+            ).all()
+
+            rendimento_values = []
+            for auction in auctions:
+                # Punti generati in quel mese
+                points = self.db.query(func.sum(Cazzata.score)).filter(
+                    Cazzata.cazzaro_id == cazzaro.id,
+                    Cazzata.season_id == season_id,
+                    Cazzata.month == auction.month,
+                    Cazzata.status == CazzataStatus.CONFIRMED
+                ).scalar() or 0
+
+                if points > 0:
+                    rendimento_values.append(auction.cost / points)
+
+            rendimento = round(sum(rendimento_values) / len(rendimento_values), 2) if rendimento_values else None
 
             stats.append(PlayerStatsOut(
                 nickname=cazzaro.nickname,
                 total_cazzate=len(cazzate),
-                confirmed_cazzate=len(confirmed),
-                pending_cazzate=len(pending),
                 avg_score=avg,
-                total_points=sum(scores)
+                total_points=sum(scores),
+                rendimento=rendimento
             ))
         return stats
 
     def get_budgets(self, season_id: int) -> list[BudgetOut]:
-        """Crediti residui e rendimento per ogni Player."""
+        """Crediti residui, massima spesa e rendimento per ogni Player."""
         season  = self.db.query(Season).filter(
                     Season.id == season_id).first()
         if not season:
@@ -116,14 +135,17 @@ class StatsService:
                 Auction.season_id == season_id
             ).scalar() or 0
 
+            remaining = season.initial_budget - spent
             points     = self._get_player_points(player.id, season_id)
             rendimento = round(spent/points, 2) if points > 0 else None
+            max_spendable = max(0, remaining - 50)
 
             budgets.append(BudgetOut(
                 nickname=player.user.nickname,
                 initial_budget=season.initial_budget,
                 credits_spent=spent,
-                credits_remaining=season.initial_budget - spent,
+                credits_remaining=remaining,
+                max_spendable=max_spendable,
                 rendimento=rendimento
             ))
         return budgets

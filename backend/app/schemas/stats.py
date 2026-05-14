@@ -10,14 +10,14 @@ class StandingOut(BaseModel):
 class PlayerStatsOut(BaseModel):
     nickname: str
     total_cazzate: int
-    confirmed_cazzate: int
-    pending_cazzate: int
     avg_score: float | None
     total_points: int
+    rendimento: float | None
 
 class BudgetOut(BaseModel):
     nickname: str
     initial_budget: int
     credits_spent: int
     credits_remaining: int
+    max_spendable: int
     rendimento: float | None
