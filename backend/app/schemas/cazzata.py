@@ -1,13 +1,13 @@
 # backend/app/schemas/cazzata.py
 from pydantic import BaseModel, field_validator
-from datetime import date
+from datetime import datetime
 from app.models.cazzata import CazzataStatus
 
 class CazzataCreate(BaseModel):
     cazzaro_id: int
     submitted_by: int
     season_id: int
-    date: date
+    date: datetime
     month: int
     description: str
     score: int

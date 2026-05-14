@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, Text, Date, ForeignKey, Enum
+from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from app.models.base import Base, TimestampMixin
 
@@ -13,7 +13,7 @@ class Cazzata(Base, TimestampMixin):
     id = Column(Integer, primary_key=True, index=True)
     cazzaro_id = Column(Integer, ForeignKey("cazzari.id"), nullable=False)
     season_id = Column(Integer, ForeignKey("seasons.id"), nullable=False)
-    date = Column(Date, nullable=False)
+    date = Column(DateTime, nullable=False)
 
     month = Column(Integer, nullable=False)
     description = Column(Text, nullable=False)
