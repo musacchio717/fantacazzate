@@ -33,3 +33,14 @@ class CazzataOut(BaseModel):
     status: CazzataStatus
 
     model_config = {"from_attributes": True}
+
+class CazzataUpdate(BaseModel):
+    description: str | None = None
+    score: int | None = None
+
+    @field_validator("score")
+    @classmethod
+    def score_must_be_valid(cls, v):
+        if v is not None and not 1 <= v <= 10:
+            raise ValueError("Il punteggio deve essere tra 1 e 10")
+        return v

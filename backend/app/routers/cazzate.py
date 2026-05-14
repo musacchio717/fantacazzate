@@ -1,4 +1,5 @@
 # backend/app/routers/cazzate.py
+from app.schemas.cazzata import CazzataCreate, CazzataUpdate, CazzataOut
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -47,14 +48,13 @@ def get_cazzata(
 @router.patch("/{cazzata_id}", response_model=CazzataOut)
 def update_cazzata(
     cazzata_id: int,
-    description: str | None = None,
-    score: int | None = None,
+    data: CazzataUpdate,          # body JSON invece di query params
     db: Session = Depends(get_db),
     token: dict = Depends(verify_token)
 ):
     """Modifica descrizione o punteggio di una cazzata esistente."""
     service = CazzataService(db)
-    cazzata = service.update_cazzata(cazzata_id, description, score)
+    cazzata = service.update_cazzata(cazzata_id, data.description, data.score)
     if not cazzata:
         raise HTTPException(status_code=404, detail="Cazzata non trovata")
     return cazzata
