@@ -56,8 +56,8 @@ class CazzataService:
         return None
 
     def get_all(self, season_id: int | None = None,
-                cazzaro_id: int | None = None,
-                month: int | None = None) -> list[Cazzata]:
+            cazzaro_id: int | None = None,
+            month: int | None = None) -> list[Cazzata]:
         query = self.db.query(Cazzata)
         if season_id:
             query = query.filter(Cazzata.season_id == season_id)
@@ -65,7 +65,7 @@ class CazzataService:
             query = query.filter(Cazzata.cazzaro_id == cazzaro_id)
         if month:
             query = query.filter(Cazzata.month == month)
-        cazzate = query.order_by(Cazzata.date.desc()).all()
+        cazzate = query.order_by(Cazzata.id.desc()).all()  # ← id invece di date
         return [self._enrich(c) for c in cazzate]
 
     def update_cazzata(self, cazzata_id: int,

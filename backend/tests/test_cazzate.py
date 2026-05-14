@@ -40,7 +40,6 @@ def test_score_minimo(client, auth_headers, seed_data):
     assert response.status_code == 422
 
 def test_modifica_cazzata(client, auth_headers, seed_data):
-    # Crea
     create = client.post("/cazzate/", headers=auth_headers, json={
         "cazzaro_id": 1,
         "submitted_by": 2,
@@ -52,11 +51,11 @@ def test_modifica_cazzata(client, auth_headers, seed_data):
     })
     cazzata_id = create.json()["id"]
 
-    # Modifica il punteggio
+    # Ora usa body JSON invece di query params
     update = client.patch(
         f"/cazzate/{cazzata_id}",
         headers=auth_headers,
-        params={"score": 8}
+        json={"score": 8}    # ← body JSON
     )
     assert update.status_code == 200
     assert update.json()["score"] == 8
@@ -74,7 +73,9 @@ def test_elimina_cazzata(client, auth_headers, seed_data):
     cazzata_id = create.json()["id"]
 
     delete = client.delete(f"/cazzate/{cazzata_id}", headers=auth_headers)
-    assert delete.status_code == 204
+    assert delete.status_code == 200    # ← 200 con messaggio di conferma
+    assert delete.json()["id"] == cazzata_id
+    assert "eliminata" in delete.json()["message"].lower()
 
     # Verifica che non esista più
     get = client.get(f"/cazzate/{cazzata_id}", headers=auth_headers)
