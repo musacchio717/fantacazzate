@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.auth import verify_token
+from app.core.auth import get_current_user
 from app.services.auction_service import AuctionService
 from app.schemas.auction import AuctionCreate, AuctionUpdate, AuctionOut
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/auctions", tags=["auctions"])
 def create_auction(
     data: AuctionCreate,
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)
 ):
     service = AuctionService(db)
     try:
@@ -25,7 +25,7 @@ def get_auctions(
     season_id: int,
     month: int | None = None,
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)
 ):
     service = AuctionService(db)
     return service.get_auctions(season_id=season_id, month=month)
@@ -35,7 +35,7 @@ def update_auction(
     auction_id: int,
     data: AuctionUpdate,
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)
 ):
     service = AuctionService(db)
     try:
@@ -50,7 +50,7 @@ def update_auction(
 def delete_auction(
     auction_id: int,
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)
 ):
     service = AuctionService(db)
     if not service.delete_auction(auction_id):
