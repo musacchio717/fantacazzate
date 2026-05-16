@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.auth import verify_token
+from app.core.auth import get_current_user
 from app.services.stats_service import StatsService
 from app.schemas.stats import StandingOut, PlayerStatsOut, BudgetOut
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/stats", tags=["stats"])
 def get_standings(
     season_id: int,
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)   # admin e observer
 ):
     service = StatsService(db)
     return service.get_standings(season_id)
@@ -21,7 +21,7 @@ def get_standings(
 def get_player_stats(
     season_id: int,
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)   # admin e observer
 ):
     service = StatsService(db)
     return service.get_player_stats(season_id)
@@ -30,7 +30,7 @@ def get_player_stats(
 def get_budgets(
     season_id: int,
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)   # admin e observer
 ):
     service = StatsService(db)
     return service.get_budgets(season_id)

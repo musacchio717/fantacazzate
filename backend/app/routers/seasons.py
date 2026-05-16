@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.auth import verify_token
+from app.core.auth import get_current_user
 from app.services.season_service import SeasonService
 from app.schemas.season import SeasonCreate, SeasonOut
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/seasons", tags=["seasons"])
 def create_season(
     data: SeasonCreate,
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)
 ):
     service = SeasonService(db)
     return service.create_season(data)
@@ -20,7 +20,7 @@ def create_season(
 @router.get("/", response_model=list[SeasonOut])
 def get_seasons(
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)
 ):
     service = SeasonService(db)
     return service.get_all_seasons()
@@ -28,7 +28,7 @@ def get_seasons(
 @router.get("/active", response_model=SeasonOut)
 def get_active_season(
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)
 ):
     service = SeasonService(db)
     season = service.get_active_season()
@@ -40,7 +40,7 @@ def get_active_season(
 def get_season(
     season_id: int,
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)
 ):
     service = SeasonService(db)
     season = service.get_season(season_id)
@@ -52,7 +52,7 @@ def get_season(
 def activate_season(
     season_id: int,
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+    current_user: dict = Depends(get_current_user)
 ):
     service = SeasonService(db)
     season = service.set_active(season_id)
